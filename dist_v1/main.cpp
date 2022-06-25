@@ -13,6 +13,11 @@ float distance(float x1, float x2)
   return sqrt((x2 - x1)*(x2 - x1));
 }
 
+float distance2(float x1, float x2)
+{
+  return abs(x2 - x1);
+}
+
 int main()
 {
   float out[N] = {0.0f};
@@ -21,7 +26,7 @@ int main()
   for (int i = 0; i < N; ++i)
   {
     float x = scale(i, N);
-    out[i] = distance(x, ref);
+    out[i] = distance2(x, ref);
     std::cout << out[i] << std::endl;
   }
 

@@ -15,7 +15,7 @@ int main()
     in[i] = scale(i, N);
   }
 
-  distanceArray(out, in, ref, N);
+  distanceArray2(out, in, ref, N);
 
   for (int i = 0; i < 100; ++i)
   {
