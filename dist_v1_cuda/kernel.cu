@@ -3,8 +3,6 @@
 #define TPB 32
 #include <iostream>
 
-#define N 64
-
 __device__ float scale(int i, int n)
 {
   return ((float)i)/(n - 1);

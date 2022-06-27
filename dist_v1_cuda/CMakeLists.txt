@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-project(dist_v1_cuda)
 project(dist_v1_cuda LANGUAGES CXX CUDA)
 
 set(CUDA_NVCC_FLAGS_DEBUG "-g -G")
