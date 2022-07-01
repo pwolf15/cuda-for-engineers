@@ -1,6 +1,7 @@
-#include "aux_functions.h"
+#include "kernel.h"
 #include <math.h>
-
+#include <stdio.h>
+#define TPB 32
 
 __device__
 float distance(float x1, float x2)

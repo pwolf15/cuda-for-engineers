@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(dist_v2_cuda)
+project(dist_v2_cuda LANGUAGES CXX CUDA)
 
-add_executable(dist_v2 main.cpp kernel.cu)
+set(CUDA_NVCC_FLAGS_DEBUG "-g -G")
+set(CMAKE_CUDA_FLAGS_DEBUG "-g")
+
+find_package(CUDA 10.2)
+
+add_executable(dist_v2_cuda main.cpp kernel.cu)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(dist_v2_cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-G>)
+endif()

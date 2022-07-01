@@ -1,8 +1,6 @@
-#ifndef AUX_FUNCTIONS_H
-#define AUX_FUNCTIONS_H
+#ifndef KERNEL_H
+#define KERNEL_H
 
-float scale(int i, int n);
-float distance(float x1, float x2);
 void distanceArray(float *out, float *in, float ref, int n);
 void distanceArray2(float* out, float *in, float ref, int n);
 
