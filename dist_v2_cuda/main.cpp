@@ -1,6 +1,6 @@
 #include "kernel.h"
 #include <stdlib.h>
-#define N 63
+#define N 4096
 
 float scale(int i, int n)
 {
