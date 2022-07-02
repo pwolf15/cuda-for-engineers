@@ -1,7 +1,7 @@
 #include "kernel.h"
 #include <math.h>
 #include <stdio.h>
-#define TPB 32
+#define TPB 65
 
 __device__
 float distance(float x1, float x2)
@@ -42,7 +42,7 @@ void distanceArray(float *out, float *in, float ref, int len)
   cudaMalloc(&d_out, len*sizeof(float));
 
   cudaMemcpy(d_in, in, len*sizeof(float), cudaMemcpyHostToDevice);
-  distanceKernel<<<len/TPB, TPB>>>(d_out, d_in, ref);
+  distanceKernel<<<(len+TPB-1)/TPB, TPB>>>(d_out, d_in, ref);
   cudaMemcpy(out, d_out, len*sizeof(float), cudaMemcpyDeviceToHost);
 
   cudaFree(d_in);

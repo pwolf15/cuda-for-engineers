@@ -40,42 +40,21 @@ void distanceKernel2(float *d_out, float *d_in, float ref)
   printf("i = %2d: dist from %f to %f is %f.\n", i, ref, x, d_out[i]);
 }
 
-void distanceArray(float *out, float *in, float ref, int len)
-{
-  float *d_in = 0;
-  float *d_out = 0;
-
-  cudaMalloc(&d_in, len*sizeof(float));
-  cudaMalloc(&d_out, len*sizeof(float));
-
-  cudaMemcpy(d_in, in, len*sizeof(float), cudaMemcpyHostToDevice);
-  distanceKernel<<<len/TPB, TPB>>>(d_out, d_in, ref);
-  cudaMemcpy(out, d_out, len*sizeof(float), cudaMemcpyDeviceToHost);
-
-  cudaFree(d_in);
-  cudaFree(d_out);
-
-}
-
 int main()
 {
   float *in = nullptr;
   float *out = nullptr;
   const float ref = 0.5f;
 
-  std::cout << "HERE!" << std::endl;
   cudaMallocManaged(&in, N*sizeof(float));
   cudaMallocManaged(&out, N*sizeof(float));
-
-  std::cout << "HERE!" << std::endl;
 
   for (int i = 0; i < N; ++i)
   {
     in[i] = scale(i, N);
   }
 
-  distanceKernel<<<N/TPB, TPB>>>(out, in, ref);
-  std::cout << "HERE!" << std::endl;
+  distanceKernel<<<(N+TPB-1)/TPB, TPB>>>(out, in, ref);
   cudaDeviceSynchronize();
 
   cudaFree(in);
