@@ -1,0 +1,25 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "CUDA C++: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/dist_v2_cuda/build/dist_v2_cuda"
+    },
+    {
+      "name": "CUDA C++ dist_v2_cuda_unified: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/dist_v2_cuda_unified/build/dist_v2_cuda_unified"
+    },
+    {
+      "name": "CUDA C++: Attach",
+      "type": "cuda-gdb",
+      "request": "attach"
+    }
+  ]
+}
