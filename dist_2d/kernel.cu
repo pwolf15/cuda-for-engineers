@@ -2,8 +2,8 @@
 #include <stdio.h>
 #define W 500
 #define H 500
-#define TX 500
-#define TY 1
+#define TX 32
+#define TY 32
 
 __global__
 void distanceKernel(float *d_out, int w, int h, float2 pos)
@@ -26,8 +26,8 @@ int main()
 
   const float2 pos = {0.0f,0.0f};
   const dim3 blockSize{TX, TY};
-  const int bx = 1;
-  const int by = 1;
+  const int bx = (W + TX - 1) / TX;
+  const int by = (H + TY - 1) / TY;
   const dim3 gridSize{bx, by};
   distanceKernel<<<gridSize, blockSize>>>(d_out, W, H, pos);
 
