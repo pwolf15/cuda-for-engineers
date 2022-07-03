@@ -17,6 +17,12 @@
       "program": "/home/pwolf/dev/cuda_for_engineers/dist_v2_cuda_unified/build/dist_v2_cuda_unified"
     },
     {
+      "name": "CUDA C++ dist_2d: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/dist_2d/build/dist_2d"
+    },
+    {
       "name": "CUDA C++: Attach",
       "type": "cuda-gdb",
       "request": "attach"
