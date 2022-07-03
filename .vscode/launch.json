@@ -23,6 +23,12 @@
       "program": "/home/pwolf/dev/cuda_for_engineers/dist_2d/build/dist_2d"
     },
     {
+      "name": "CUDA C++ dist_2d_image: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/dist_2d_image/build/dist_2d_image"
+    },
+    {
       "name": "CUDA C++: Attach",
       "type": "cuda-gdb",
       "request": "attach"
