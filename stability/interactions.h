@@ -17,8 +17,8 @@ void keyboard(unsigned char key, int x, int y)
 
 void handleSpecialKeypress(int key, int x, int y)
 {
-  if (key == GLUT_KEY_UP) param -= DELTA_P;
-  if (key == GLUT_KEY_DOWN) param += DELTA_P;
+  if (key == GLUT_KEY_DOWN) param -= DELTA_P;
+  if (key == GLUT_KEY_UP) param += DELTA_P;
   glutPostRedisplay();
 }
 
@@ -31,7 +31,7 @@ void printInstructions()
   printf("Use number keys to select system:\n");
   printf("\t0: Linear oscillator: positive stiffness\n");
   printf("\t1: Linear oscillator: negative stiffness\n");
-  printf("\t0: van der Pol oscillator: nonlinear damping\n");
+  printf("\t2: van der Pol oscillator: nonlinear damping\n");
   printf("up/down arrow keys adjust parameter value\n");
   printf("Choose the van der Pol (sys=2)\n");
   printf("esc: close graphics window\n");
