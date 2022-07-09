@@ -29,6 +29,12 @@
       "program": "/home/pwolf/dev/cuda_for_engineers/dist_2d_image/build/dist_2d_image"
     },
     {
+      "name": "CUDA C++ sharpen: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/sharpen/build/sharpen"
+    },
+    {
       "name": "CUDA C++: Attach",
       "type": "cuda-gdb",
       "request": "attach"
