@@ -35,6 +35,12 @@
       "program": "/home/pwolf/dev/cuda_for_engineers/sharpen/build/sharpen"
     },
     {
+      "name": "CUDA C++ sharpen shared 2: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/sharpen_shared2/build/sharpen_shared2"
+    },
+    {
       "name": "CUDA C++: Attach",
       "type": "cuda-gdb",
       "request": "attach"
