@@ -39,6 +39,8 @@ void sharpenKernel(uchar4* d_out, uchar4* d_in, const float *d_filter, int w, in
   s_in[s_i] = d_in[i];
 
   // Halo cells
+
+  // corner halo values
   if (threadIdx.x < RAD && threadIdx.y < RAD) 
   {
     s_in[flatten(s_c - RAD, s_r - RAD, s_w, s_h)] =
@@ -50,6 +52,8 @@ void sharpenKernel(uchar4* d_out, uchar4* d_in, const float *d_filter, int w, in
     s_in[flatten(s_c + blockDim.y, s_r + blockDim.y, s_w, s_h)] =
       d_in[flatten(c + blockDim.y, r + blockDim.y, w, h)];
   }
+
+  // edge halo values
   if (threadIdx.x < RAD)
   {
     s_in[flatten(s_c - RAD, s_r, s_w, s_h)] = 
