@@ -1,6 +1,6 @@
 #include "kernel.h"
-#define TX 32
-#define TY 32
+#define TX 128
+#define TY 8
 #define RAD 1
 
 int divUp(int a, int b) { return (a + b - 1) / b; }
