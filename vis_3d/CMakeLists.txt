@@ -13,7 +13,9 @@ include_directories(${GLUT_INCLUDE_DIRS})
 include_directories(${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux/include)
 include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
 
-cuda_add_executable(vis_3d main.cpp kernel.cu device_funcs.cuh device_funcs.cu)
+add_executable(vis_3d main.cpp kernel.cu device_funcs.cu)
+
+set_target_properties(vis_3d PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries(vis_3d ${GLUT_LIBRARIES} GL GLU ${CUDA_TOOLKIT_ROOT_DIR}/samples/common/lib/linux/aarch64/libGLEW.a)
 
