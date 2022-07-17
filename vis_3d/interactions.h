@@ -59,7 +59,7 @@ void keyboard(unsigned char key, int x, int y)
   if (key == '-') zs += DELTA; // move source farther
   if (key == 'd') --dist; // decrease slice distance
   if (key == 'D') ++dist; // increase slice distance
-  if (key == 'z') zs = Nz, theta = 0.f, dist = 0.f; // reset values
+  if (key == 'z') zs = NZ, theta = 0.f, dist = 0.f; // reset values
   if (key == 'v') method = 0; // volume rendering
   if (key == 'f') method = 1; // slicing
   if (key == 'r') method = 2; // racyast

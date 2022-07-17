@@ -26,7 +26,7 @@ void render()
   uchar4* d_out = 0;
   cudaGraphicsMapResources(1, &cuda_pbo_resource, 0);
   cudaGraphicsResourceGetMappedPointer((void**)&d_out, NULL, cuda_pbo_resource);
-  kernelLauncher(d_out, W, H, volumeSize, method, zs, theta,
+  kernelLauncher(d_out, d_vol, W, H, volumeSize, method, zs, theta,
                  threshold, dist);
   cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0);
   char title[128];
@@ -61,7 +61,7 @@ void initGLUT(int *argc, char **argv)
   glutInit(argc, argv);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
   glutInitWindowSize(W, H);
-  glutCreateWindow(TITLE_STRING);
+  glutCreateWindow("Volume Visualizer");
 #ifndef __APPLE__
   glewInit();
 #endif

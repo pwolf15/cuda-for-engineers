@@ -9,7 +9,7 @@
 #define TZ 8
 #define NUMSTEPS 20
 
-___global__
+__global__
 void renderKernel(uchar4 *d_out, float *d_vol, int w, int h,
   int3 volSize, int method, float zs, float theta, float threshold,
   float dist)
@@ -39,14 +39,14 @@ void renderKernel(uchar4 *d_out, float *d_vol, int w, int h,
   {
     if (t0 < 0.0f) t0 = 0.f; // clamp to 0 to avoid looking backward
     // bounded by points where the ray enters and leaves the box
-    const Ray boxRay {paramray(pixRay, t0),
-                      paramRay(pixRay, t1) - paramRay(pixRay, t)};
+    const Ray boxRay {paramRay(pixRay, t0),
+                      paramRay(pixRay, t1) - paramRay(pixRay, t0)};
     if (method == 1) shade =
       sliceShader(d_vol, volSize, boxRay, threshold, dist, source);
     else if (method == 2) shade =
       rayCastShader(d_vol, volSize, boxRay, threshold);
     else shade =
-      volumeRenderShader(d_vol, volSize, boxRay, threshold, numSteps);
+      volumeRenderShader(d_vol, volSize, boxRay, threshold, NUMSTEPS);
   }
   d_out[i] = shade;
 }
@@ -68,7 +68,7 @@ void kernelLauncher(uchar4* d_out, float *d_vol, int w, int h,
   float dist)
 {
   dim3 blockSize(TX_2D, TY_2D);
-  dim3 gridSize(divUp(w, TX_2D), divUp(y, TY_2D));
+  dim3 gridSize(divUp(w, TX_2D), divUp(h, TY_2D));
   renderKernel<<<gridSize, blockSize>>>(d_out, d_vol, w, h, volSize,
     method, zs, theta, threshold, dist);
 }
