@@ -86,6 +86,7 @@ void exitfunc()
     glDeleteBuffers(1, &pbo);
     glDeleteBuffers(1, &tex);
   }
+  cudaFree(d_vol);
 }
 
 int main(int argc, char** argv)

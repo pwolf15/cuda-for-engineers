@@ -25,7 +25,7 @@ __device__ float func(int c, int r, int s, int id, int3 volSize,
   const float dx = c - pos0.x, dy = r - pos0.y, dz = s - pos0.z;
   if (id == 0) // sphere
   {
-    return sqrtf(dx*dx + dy*dz + dz*dz) - params.x;
+    return sqrtf(dx*dx + dy*dy + dz*dz) - params.x;
   }
   else if (id == 1) // torus
   {

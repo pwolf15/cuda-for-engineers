@@ -2,8 +2,8 @@
 #include "device_funcs.cuh"
 #include <helper_math.h>
 #include <stdio.h>
-#define TX_2D 32
-#define TY_2D 32
+#define TX_2D 16
+#define TY_2D 16
 #define TX 8
 #define TY 8
 #define TZ 8
@@ -19,7 +19,7 @@ void renderKernel(uchar4 *d_out, float *d_vol, int w, int h,
   const int i = c + r * w;
   if ((c >= w) || (r >= h)) return;
   const uchar4 background = {64, 0, 128, 0};
-  float3 source = { 0.f, 0.f, 0.f};
+  float3 source = { 0.f, 0.f, -zs};
   float3 pix = scrIdxToPos(c, r, w, h, 2*volSize.z-zs);
   // apply viewing transformation; here rotate about y-axis
   source = yRotate(source, theta);
