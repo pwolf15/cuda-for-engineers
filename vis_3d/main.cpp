@@ -84,7 +84,7 @@ void exitfunc()
   {
     cudaGraphicsUnregisterResource(cuda_pbo_resource);
     glDeleteBuffers(1, &pbo);
-    glDeleteBuffers(1, &tex);
+    glDeleteTextures(1, &tex);
   }
   cudaFree(d_vol);
 }

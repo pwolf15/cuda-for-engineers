@@ -98,8 +98,8 @@ __device__ float density(float *d_vol, int3 volSize, float3 pos)
   int i = index.x, j = index.y, k = index.z;
   const int w = volSize.x, h = volSize.y, d = volSize.z;
   const float3 rem = fracf(pos);
-  index = make_int3(clipWithBounds(i, 0, w - 2)), 
-    clipWithBounds(j, 0, h - 2), clipWithBounds(k, 0, d - 2);
+  index = make_int3(clipWithBounds(i, 0, w - 2), 
+    clipWithBounds(j, 0, h - 2), clipWithBounds(k, 0, d - 2));
   // directed increments for computing the gradient
   const int3 dx = { 1, 0, 0 }, dy = { 0, 1, 0 }, dz = { 0, 0, 1};
   // values sample at surrounding grid points
