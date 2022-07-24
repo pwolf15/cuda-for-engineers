@@ -41,6 +41,18 @@
       "program": "/home/pwolf/dev/cuda_for_engineers/sharpen_shared2/build/sharpen_shared2"
     },
     {
+      "name": "CUDA C++ thrustpi: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/thrustpi/build/thrustpi"
+    },
+    {
+      "name": "CUDA C++ dist_1d_fused: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "/home/pwolf/dev/cuda_for_engineers/dist_1d_fused/build/dist_1d_fused"
+    },
+    {
       "name": "CUDA C++: Attach",
       "type": "cuda-gdb",
       "request": "attach"
