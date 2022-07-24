@@ -23,8 +23,8 @@ int main()
         thrust::make_tuple(dvec_x.end(), dvec_y.end())),
       []__device__(const thrust::tuple<float, float> & el)
     {
-      return (pow(thrust::get<0>(el)/RAND_MAX, 2) +
-              pow(thrust::get<1>(el)/RAND_MAX, 2)) < 1.f; });
+      return (pow(thrust::get<0>(el), 2) +
+              pow(thrust::get<1>(el), 2)) < 1.f; });
 
   printf("pi = %f\n", insideCount*4.f/N);
 
