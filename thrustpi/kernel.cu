@@ -22,7 +22,7 @@ int main()
   thrust::transform(dvec_y.begin(), dvec_y.end(), dvec_y.begin(),
     _1 / RAND_MAX);
   thrust::device_vector<float> dvec_inCircle(N);
-  thrust::transform(dvec_x.begin(), dvec_x.end(), dvec_inCircle.begin(),
+  thrust::transform(dvec_x.begin(), dvec_x.end(), dvec_y.begin(),
     dvec_inCircle.begin(), (_1*_1 + _2*_2)<1);
   float pi =
     thrust::reduce(dvec_inCircle.begin(), dvec_inCircle.end())*4.f/N;
