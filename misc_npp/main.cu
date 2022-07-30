@@ -81,10 +81,42 @@ void sumNPP(Npp8u *arr, Npp8u* out, int w, int h)
   cudaFree(d_out);
 }
 
+void normNPP(Npp8u *arr, Npp8u* out, int w, int h)
+{
+  Npp8u *d_in = 0, *d_out = 0;
+
+  cudaMalloc(&d_out, kNumCh*w*h*sizeof(Npp8u));
+  cudaMalloc(&d_in, kNumCh*w*h*sizeof(Npp8u));
+  cudaMemcpy(d_in, arr, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(d_out, out, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyHostToDevice);
+  const NppiSize oSizeROI = {w, h};
+  Npp64f *aNorm = 0;
+  cudaMalloc(&aNorm, 3*sizeof(Npp64f));
+  Npp8u *pDeviceBuffer = 0;
+  int bufferSize;
+  nppiNormDiffL2GetBufferHostSize_8u_C3R(oSizeROI, &bufferSize);
+  cudaMalloc(&pDeviceBuffer, bufferSize);
+  nppiNormDiff_L2_8u_C3R(d_in, kNumCh*w*sizeof(Npp8u), d_out,
+    kNumCh*w*sizeof(Npp8u), oSizeROI, aNorm, pDeviceBuffer);
+  Npp64f res[3];
+  cudaMemcpy(res, aNorm, 3*sizeof(Npp64f), cudaMemcpyDeviceToHost);
+  for (int i = 0; i < 3; ++i)
+  {
+    printf("%f\n", res[i]/(w*h));
+  }
+
+  cudaMemcpy(arr, d_out, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyDeviceToHost);
+  cudaFree(d_in);
+  cudaFree(d_out);
+}
+
 
 int main()
 {
-  cimg_library::CImg<unsigned char> image("/home/pwolf/dev/cuda_for_engineers/misc_npp/build/Tricoloring.png");
+  cimg_library::CImg<unsigned char> image("/home/pwolf/dev/cuda_for_engineers/misc_npp/build/08fig04a.jpg");
   const int w = image.width();
   const int h = image.height();
   Npp8u *arr = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
@@ -106,6 +138,10 @@ int main()
 
   // sharpened
   sharpenNPP(arr, w, h);
+
+  // create copy of sharpened
+  Npp8u *sharpened = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
+  memcpy((void*)sharpened, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
 
   for (int r = 0; r < h; ++r)
   {
@@ -149,6 +185,8 @@ int main()
   }
 
   image.save_bmp("sum.bmp");
+
+  normNPP(sharpened, orig, w, h);
 
   free(arr);
   return 0;
