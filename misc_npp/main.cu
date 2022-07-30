@@ -60,6 +60,28 @@ void permuteNPP(Npp8u *arr, int w, int h)
   cudaFree(d_out);
 }
 
+void sumNPP(Npp8u *arr, Npp8u* out, int w, int h)
+{
+  Npp8u *d_in = 0, *d_out = 0;
+
+  cudaMalloc(&d_out, kNumCh*w*h*sizeof(Npp8u));
+  cudaMalloc(&d_in, kNumCh*w*h*sizeof(Npp8u));
+  cudaMemcpy(d_in, arr, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(d_out, out, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyHostToDevice);
+  const NppiSize oSizeROI = {w, h};
+
+  nppiAdd_8u_C3RSfs(d_in, kNumCh*w*sizeof(Npp8u), d_out,
+    kNumCh*w*sizeof(Npp8u), d_out, kNumCh*w*sizeof(Npp8u), oSizeROI, 1);
+  
+  cudaMemcpy(arr, d_out, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyDeviceToHost);
+  cudaFree(d_in);
+  cudaFree(d_out);
+}
+
+
 int main()
 {
   cimg_library::CImg<unsigned char> image("/home/pwolf/dev/cuda_for_engineers/misc_npp/build/Tricoloring.png");
@@ -77,6 +99,10 @@ int main()
       }
     }
   }
+
+  // create copy of original
+  Npp8u *orig = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
+  memcpy((void*)orig, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
 
   // sharpened
   sharpenNPP(arr, w, h);
@@ -108,7 +134,21 @@ int main()
     }
   }
 
-  image.save_bmp("permuted.bmp");
+  // sum original and permuted
+  sumNPP(arr, orig, w, h);
+
+  for (int r = 0; r < h; ++r)
+  {
+    for (int c = 0; c < w; ++c)
+    {
+      for (int ch = 0; ch < kNumCh; ++ch)
+      {
+        image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
+      }
+    }
+  }
+
+  image.save_bmp("sum.bmp");
 
   free(arr);
   return 0;
