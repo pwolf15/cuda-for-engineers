@@ -107,16 +107,97 @@ void normNPP(Npp8u *arr, Npp8u* out, int w, int h)
     printf("%f\n", res[i]/(w*h));
   }
 
+  float avg = 0, avg2 = 0;
+  Npp8u minimum = 255;
+  for (int i = 0; i < w*h*3; ++i)
+  {
+    avg += arr[i];
+    avg2 += out[i];
+    minimum = std::min(minimum, out[i]);
+    if (arr[i] != out[i])
+    {
+      std::cout << "Different!" << std::endl;
+      break;
+    }
+  }
+
+  std::cout << "Average: " << avg / (w*h) << std::endl;
+  std::cout << "Average 2: " << avg2 / (w*h) << std::endl;
+  std::cout << "Minimum: " << minimum << std::endl;
+
   cudaMemcpy(arr, d_out, kNumCh*w*h*sizeof(Npp8u),
              cudaMemcpyDeviceToHost);
   cudaFree(d_in);
   cudaFree(d_out);
 }
 
+void grayscaleNormNPP(Npp8u *arr, Npp8u* out, int w, int h)
+{
+  Npp8u *d_in = 0, *d_out = 0, *d_temp_gray1 = 0, *d_temp_gray2 = 0;
+
+  cudaMalloc(&d_out, kNumCh*w*h*sizeof(Npp8u));
+  cudaMalloc(&d_in, kNumCh*w*h*sizeof(Npp8u));
+  cudaMalloc(&d_temp_gray1, w*h*sizeof(Npp8u));
+  cudaMalloc(&d_temp_gray2, w*h*sizeof(Npp8u));
+
+  cudaMemcpy(d_in, arr, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(d_out, out, kNumCh*w*h*sizeof(Npp8u),
+             cudaMemcpyHostToDevice);
+  const NppiSize oSizeROI = {w, h};
+  Npp64f *pNormDiff = NULL;
+  cudaMalloc(&pNormDiff, sizeof(Npp64f));
+
+  Npp8u* pDeviceBufferGray = NULL;
+  int bufferSizeGray;
+  nppiNormDiffL2GetBufferHostSize_8u_C1R(oSizeROI, &bufferSizeGray);
+  cudaMalloc(&pDeviceBufferGray, bufferSizeGray);
+
+  // Convert to Grayscale
+  nppiRGBToGray_8u_C3C1R(d_in, kNumCh*w*sizeof(Npp8u), d_temp_gray1,
+    w*sizeof(Npp8u), oSizeROI);
+  nppiRGBToGray_8u_C3C1R(d_out, kNumCh*w*sizeof(Npp8u), d_temp_gray2,
+    w*sizeof(Npp8u), oSizeROI);
+
+  // grayscale norm diff
+  nppiNormDiff_L2_8u_C1R(d_temp_gray1, w*sizeof(Npp8u), d_temp_gray2,
+    w*sizeof(Npp8u), oSizeROI, pNormDiff, pDeviceBufferGray);
+
+  Npp8u *h_temp_gray1 = 0, *h_temp_gray2 = 0;
+
+  h_temp_gray1 = (Npp8u*)malloc(w*h*sizeof(Npp8u));
+  h_temp_gray2 = (Npp8u*)malloc(w*h*sizeof(Npp8u));
+  cudaMemcpy(h_temp_gray1, d_temp_gray1, w*h*sizeof(Npp8u),
+             cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_temp_gray2, d_temp_gray2, w*h*sizeof(Npp8u),
+             cudaMemcpyDeviceToHost);
+
+  float avg = 0, avg2 = 0;
+  Npp8u minimum = 255;
+  for (int i = 0; i < w*h; ++i)
+  {
+    avg += arr[i];
+    avg2 += out[i];
+    minimum = std::min(minimum, out[i]);
+    if (arr[i] != out[i])
+    {
+      std::cout << "Different!" << std::endl;
+      break;
+    }
+  }
+
+  std::cout << "Average: " << avg / (w*h) << std::endl;
+  std::cout << "Average 2: " << avg2 / (w*h) << std::endl;
+  std::cout << "Minimum: " << minimum << std::endl;
+  
+  Npp64f res = 0;
+  cudaMemcpy(&res, pNormDiff, sizeof(Npp64f), cudaMemcpyDeviceToHost);
+  printf("%f\n", res);
+}
 
 int main()
 {
-  cimg_library::CImg<unsigned char> image("/home/pwolf/dev/cuda_for_engineers/misc_npp/build/08fig04a.jpg");
+  cimg_library::CImg<unsigned char> image("/home/pwolf/dev/cuda_for_engineers/misc_npp/build/Tricoloring.png");
   const int w = image.width();
   const int h = image.height();
   Npp8u *arr = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
@@ -156,37 +237,50 @@ int main()
 
   image.save_bmp("out.bmp");
 
-  // permuted
-  permuteNPP(arr, w, h);
+  // // permuted
+  // permuteNPP(arr, w, h);
 
-  for (int r = 0; r < h; ++r)
-  {
-    for (int c = 0; c < w; ++c)
-    {
-      for (int ch = 0; ch < kNumCh; ++ch)
-      {
-        image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
-      }
-    }
-  }
+  // for (int r = 0; r < h; ++r)
+  // {
+  //   for (int c = 0; c < w; ++c)
+  //   {
+  //     for (int ch = 0; ch < kNumCh; ++ch)
+  //     {
+  //       image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
+  //     }
+  //   }
+  // }
 
-  // sum original and permuted
-  sumNPP(arr, orig, w, h);
+  // // create copy of permuted
+  // Npp8u *permuted = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
+  // memcpy((void*)permuted, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
 
-  for (int r = 0; r < h; ++r)
-  {
-    for (int c = 0; c < w; ++c)
-    {
-      for (int ch = 0; ch < kNumCh; ++ch)
-      {
-        image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
-      }
-    }
-  }
+  // // sum original and permuted
+  // sumNPP(arr, orig, w, h);
 
-  image.save_bmp("sum.bmp");
+  // for (int r = 0; r < h; ++r)
+  // {
+  //   for (int c = 0; c < w; ++c)
+  //   {
+  //     for (int ch = 0; ch < kNumCh; ++ch)
+  //     {
+  //       image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
+  //     }
+  //   }
+  // }
 
-  normNPP(sharpened, orig, w, h);
+  // image.save_bmp("sum.bmp");
+
+  // std::cout << "Norm with itself" << std::endl;
+  // normNPP(orig, orig, w, h);      // compare with itself
+
+  std::cout << "Norm with sharpened" << std::endl;
+  normNPP(sharpened, orig, w, h); // compare wih sharpened
+
+  // std::cout << "Norm with color-swapped" << std::endl;
+  // normNPP(permuted, orig, w, h); // compare with color-swapped
+  // std::cout << "Grayscale: norm with color-swapped" << std::endl;
+  grayscaleNormNPP(sharpened, orig, w, h); // compare with grayscale color-swapped
 
   free(arr);
   return 0;
