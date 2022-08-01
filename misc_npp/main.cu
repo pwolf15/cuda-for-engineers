@@ -107,28 +107,46 @@ void normNPP(Npp8u *arr, Npp8u* out, int w, int h)
     printf("%f\n", res[i]/(w*h));
   }
 
-  float avg = 0, avg2 = 0;
-  Npp8u minimum = 255;
-  for (int i = 0; i < w*h*3; ++i)
+  cudaFree(d_in);
+  cudaFree(d_out);
+}
+
+bool equalHost(Npp8u *host_1, Npp8u *host_2, int numCh, int w, int h)
+{
+  bool equalCheck = true;
+  for (int i = 0; i < w*h*numCh; ++i)
   {
-    avg += arr[i];
-    avg2 += out[i];
-    minimum = std::min(minimum, out[i]);
-    if (arr[i] != out[i])
+    if (host_1[i] != host_2[i])
     {
-      std::cout << "Different!" << std::endl;
+      equalCheck = false;
+      break;
+    }
+  }
+  return equalCheck;
+}
+
+bool equalDev(Npp8u *dev_1, Npp8u *dev_2, int numCh, int w, int h)
+{
+  Npp8u *host_1 = 0, *host_2 = 0;
+  host_1 = (Npp8u*)malloc(numCh*w*h*sizeof(Npp8u));
+  host_2 = (Npp8u*)malloc(numCh*w*h*sizeof(Npp8u));
+
+  cudaMemcpy(host_1, dev_1, numCh*w*h*sizeof(Npp8u), cudaMemcpyDeviceToHost);
+  cudaMemcpy(host_2, dev_2, numCh*w*h*sizeof(Npp8u), cudaMemcpyDeviceToHost);
+
+  bool equalCheck = true;
+  for (int i = 0; i < w*h*numCh; ++i)
+  {
+    if (host_1[i] != host_2[i])
+    {
+      equalCheck = false;
       break;
     }
   }
 
-  std::cout << "Average: " << avg / (w*h) << std::endl;
-  std::cout << "Average 2: " << avg2 / (w*h) << std::endl;
-  std::cout << "Minimum: " << minimum << std::endl;
-
-  cudaMemcpy(arr, d_out, kNumCh*w*h*sizeof(Npp8u),
-             cudaMemcpyDeviceToHost);
-  cudaFree(d_in);
-  cudaFree(d_out);
+  free(host_1);
+  free(host_2);
+  return equalCheck;
 }
 
 void grayscaleNormNPP(Npp8u *arr, Npp8u* out, int w, int h)
@@ -137,13 +155,14 @@ void grayscaleNormNPP(Npp8u *arr, Npp8u* out, int w, int h)
 
   cudaMalloc(&d_out, kNumCh*w*h*sizeof(Npp8u));
   cudaMalloc(&d_in, kNumCh*w*h*sizeof(Npp8u));
-  cudaMalloc(&d_temp_gray1, w*h*sizeof(Npp8u));
-  cudaMalloc(&d_temp_gray2, w*h*sizeof(Npp8u));
-
   cudaMemcpy(d_in, arr, kNumCh*w*h*sizeof(Npp8u),
              cudaMemcpyHostToDevice);
   cudaMemcpy(d_out, out, kNumCh*w*h*sizeof(Npp8u),
              cudaMemcpyHostToDevice);
+
+  cudaMalloc(&d_temp_gray1, w*h*sizeof(Npp8u));
+  cudaMalloc(&d_temp_gray2, w*h*sizeof(Npp8u));
+
   const NppiSize oSizeROI = {w, h};
   Npp64f *pNormDiff = NULL;
   cudaMalloc(&pNormDiff, sizeof(Npp64f));
@@ -163,36 +182,9 @@ void grayscaleNormNPP(Npp8u *arr, Npp8u* out, int w, int h)
   nppiNormDiff_L2_8u_C1R(d_temp_gray1, w*sizeof(Npp8u), d_temp_gray2,
     w*sizeof(Npp8u), oSizeROI, pNormDiff, pDeviceBufferGray);
 
-  Npp8u *h_temp_gray1 = 0, *h_temp_gray2 = 0;
-
-  h_temp_gray1 = (Npp8u*)malloc(w*h*sizeof(Npp8u));
-  h_temp_gray2 = (Npp8u*)malloc(w*h*sizeof(Npp8u));
-  cudaMemcpy(h_temp_gray1, d_temp_gray1, w*h*sizeof(Npp8u),
-             cudaMemcpyDeviceToHost);
-  cudaMemcpy(h_temp_gray2, d_temp_gray2, w*h*sizeof(Npp8u),
-             cudaMemcpyDeviceToHost);
-
-  float avg = 0, avg2 = 0;
-  Npp8u minimum = 255;
-  for (int i = 0; i < w*h; ++i)
-  {
-    avg += arr[i];
-    avg2 += out[i];
-    minimum = std::min(minimum, out[i]);
-    if (arr[i] != out[i])
-    {
-      std::cout << "Different!" << std::endl;
-      break;
-    }
-  }
-
-  std::cout << "Average: " << avg / (w*h) << std::endl;
-  std::cout << "Average 2: " << avg2 / (w*h) << std::endl;
-  std::cout << "Minimum: " << minimum << std::endl;
-  
   Npp64f res = 0;
   cudaMemcpy(&res, pNormDiff, sizeof(Npp64f), cudaMemcpyDeviceToHost);
-  printf("%f\n", res);
+  printf("%f\n", res/(w*h));
 }
 
 int main()
@@ -217,12 +209,20 @@ int main()
   Npp8u *orig = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
   memcpy((void*)orig, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
 
+  bool testEqual = equalHost(arr, orig, kNumCh, w, h);
+
+  std::cout << "Arr == orig: " << testEqual << std::endl;
+
   // sharpened
   sharpenNPP(arr, w, h);
 
   // create copy of sharpened
   Npp8u *sharpened = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
   memcpy((void*)sharpened, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
+
+  testEqual = equalHost(sharpened, orig, kNumCh, w, h);
+
+  std::cout << "Sharpened == orig: " << testEqual << std::endl;
 
   for (int r = 0; r < h; ++r)
   {
@@ -237,50 +237,61 @@ int main()
 
   image.save_bmp("out.bmp");
 
-  // // permuted
-  // permuteNPP(arr, w, h);
+  // permuted
+  permuteNPP(arr, w, h);
 
-  // for (int r = 0; r < h; ++r)
-  // {
-  //   for (int c = 0; c < w; ++c)
-  //   {
-  //     for (int ch = 0; ch < kNumCh; ++ch)
-  //     {
-  //       image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
-  //     }
-  //   }
-  // }
+  for (int r = 0; r < h; ++r)
+  {
+    for (int c = 0; c < w; ++c)
+    {
+      for (int ch = 0; ch < kNumCh; ++ch)
+      {
+        image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
+      }
+    }
+  }
 
-  // // create copy of permuted
-  // Npp8u *permuted = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
-  // memcpy((void*)permuted, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
+  // create copy of permuted
+  Npp8u *permuted = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
+  memcpy((void*)permuted, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
 
-  // // sum original and permuted
-  // sumNPP(arr, orig, w, h);
+  // sum original and permuted
+  sumNPP(arr, orig, w, h);
 
-  // for (int r = 0; r < h; ++r)
-  // {
-  //   for (int c = 0; c < w; ++c)
-  //   {
-  //     for (int ch = 0; ch < kNumCh; ++ch)
-  //     {
-  //       image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
-  //     }
-  //   }
-  // }
+  for (int r = 0; r < h; ++r)
+  {
+    for (int c = 0; c < w; ++c)
+    {
+      for (int ch = 0; ch < kNumCh; ++ch)
+      {
+        image(c, r, ch) = arr[kNumCh*(r*w + c) + ch];
+      }
+    }
+  }
 
-  // image.save_bmp("sum.bmp");
+  // create copy of permuted
+  Npp8u *sumImage = (Npp8u*)malloc(kNumCh*w*h*sizeof(Npp8u));
+  memcpy((void*)sumImage, (void*)arr, kNumCh*w*h*sizeof(Npp8u));
 
-  // std::cout << "Norm with itself" << std::endl;
-  // normNPP(orig, orig, w, h);      // compare with itself
+  image.save_bmp("sum.bmp");
+
+  std::cout << "Norm with itself" << std::endl;
+  normNPP(orig, orig, w, h);      // compare with itself
 
   std::cout << "Norm with sharpened" << std::endl;
   normNPP(sharpened, orig, w, h); // compare wih sharpened
 
-  // std::cout << "Norm with color-swapped" << std::endl;
-  // normNPP(permuted, orig, w, h); // compare with color-swapped
-  // std::cout << "Grayscale: norm with color-swapped" << std::endl;
-  grayscaleNormNPP(sharpened, orig, w, h); // compare with grayscale color-swapped
+  std::cout << "Norm with color-swapped" << std::endl;
+  normNPP(permuted, orig, w, h); // compare with color-swapped
+
+  std::cout << "Grayscale: norm with color-swapped" << std::endl;
+  grayscaleNormNPP(permuted, orig, w, h); // compare with grayscale color-swapped
+
+  std::cout << "Norm with sumImage" << std::endl;
+  normNPP(sumImage, orig, w, h); // compare with color-swapped
+
+  std::cout << "Grayscale: norm with sumImage" << std::endl;
+  grayscaleNormNPP(sumImage, orig, w, h); // compare with grayscale color-swapped
 
   free(arr);
   return 0;
